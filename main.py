@@ -34,7 +34,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return {"id": db_user.id, "name": db_user.name, "email": db_user.email}
 
-@app.get("/allUsers/", response_model=dict)
+@app.get("/allUsers", response_model=dict)
 def get_all_user(db: Session = Depends(get_db)):
     # Fetch all users from the database
     db_users = db.query(User).all()
