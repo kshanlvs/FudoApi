@@ -11,6 +11,8 @@ from schemas import UserCreate
 
 app = FastAPI()
 
+
+
 @app.get("/")
 def read_root():
     return {"message": "Hello, World!"}
@@ -44,4 +46,4 @@ def get_all_user(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No users found")
 
     # Return users in dictionary format
-    return {"users": db_users}
+    return {"users":"kishan"}
