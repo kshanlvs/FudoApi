@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import  HTTPException, Depends
 
 from database import get_db
 from models import User
@@ -33,3 +33,15 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"id": db_user.id, "name": db_user.name, "email": db_user.email}
+
+@app.get("/allUsers/", response_model=dict)
+def get_all_user(db: Session = Depends(get_db)):
+    # Fetch all users from the database
+    db_users = db.query(User).all()
+
+    # Check if there are users in the database
+    if not db_users:
+        raise HTTPException(status_code=404, detail="No users found")
+
+    # Return users in dictionary format
+    return {"users": db_users}
