@@ -26,3 +26,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return {"id": new_user.id, "name": new_user.name, "email": new_user.email}
+
+@app.get("/users/{user_id}", response_model=dict)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"id": db_user.id, "name": db_user.name, "email": db_user.email}
