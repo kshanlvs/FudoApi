@@ -5,7 +5,8 @@ from sqlalchemy.orm import sessionmaker
 DATABASE_URL = "postgresql://postgres:ciJYamMAqdFQUNyIwLysHqUCSrNiHzDJ@viaduct.proxy.rlwy.net:19536/railway"
 
 # Create the database engine
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, echo=True)
+
 
 # Create a session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

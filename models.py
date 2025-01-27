@@ -8,4 +8,4 @@ class User(Base):
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
     phone = Column(String, unique=True, index=True)  # Added phone field
-    password = Column(String)
+    password = Column(String, index=True)

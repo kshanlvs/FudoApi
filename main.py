@@ -7,12 +7,13 @@ from models import User
 from fastapi import  FastAPI
 from sqlalchemy.orm import Session
 
+from router.user_api import router
 from schemas import UserCreate
 
 app = FastAPI()
 
 
-
+app.include_router(router)
 @app.get("/")
 def read_root():
     return {"message": "Hello, World!"}
