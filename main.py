@@ -8,7 +8,7 @@ from fastapi import  FastAPI
 from sqlalchemy.orm import Session
 
 from router.user_api import router
-from schemas import UserCreate
+from schema import UserCreate
 
 app = FastAPI()
 
