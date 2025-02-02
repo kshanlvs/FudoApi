@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 
 from schemas.login import UserLogin
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["authentication"])
 
 # Password hashing setup
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

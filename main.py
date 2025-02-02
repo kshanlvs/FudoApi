@@ -7,13 +7,16 @@ from models import User
 from fastapi import  FastAPI
 from sqlalchemy.orm import Session
 
-from router.user_api import router
-from schemas import UserCreate
+from router.user_api import router as user_router
+from router.login_api import router as login_router
+from schema import UserCreate
 
 app = FastAPI()
 
 
-app.include_router(router)
+app.include_router(user_router)
+
+app.include_router(login_router)
 @app.get("/")
 def read_root():
     return {"message": "Hello, World!"}
