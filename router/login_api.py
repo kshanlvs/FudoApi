@@ -1,3 +1,4 @@
+import traceback
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
@@ -23,7 +24,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is missing from environment variables")
 
-print(f"SECRET_KEY loaded: {SECRET_KEY}")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -69,5 +69,5 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         logger.error(f"JWT error: {str(jwt_error)}")
         raise HTTPException(status_code=500, detail="JWT generation failed.")
     except Exception as e:
-        logger.error(f"Unexpected error occurred during login: {str(e)}")
+        logger.error(f"Unexpected error occurred during login: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Internal server error.")
