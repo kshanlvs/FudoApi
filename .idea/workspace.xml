@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4212ca73-47ca-4f8e-a605-6f1b5a098115" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/router/auth.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/router/profile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/router/login_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/router/login_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

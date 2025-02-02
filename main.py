@@ -12,6 +12,7 @@ from router.login_api import router as login_router
 from schema import UserCreate
 from dotenv import load_dotenv
 import os
+from router.profile import router as profile_router
 
 app = FastAPI()
 
@@ -20,6 +21,7 @@ load_dotenv()
 
 
 app.include_router(user_router)
+app.include_router(profile_router)
 
 app.include_router(login_router)
 @app.get("/")
