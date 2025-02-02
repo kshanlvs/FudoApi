@@ -6,13 +6,21 @@ from models import User
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from schemas.login import UserLogin
-from dotenv import load_dotenv
 import logging
 import os
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
-# Load environment variables from .env file
+
+
 load_dotenv()
+
+
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is missing from environment variables")
 
 router = APIRouter(prefix="/users", tags=["authentication"])
 
@@ -20,10 +28,7 @@ router = APIRouter(prefix="/users", tags=["authentication"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Load environment variables
-SECRET_KEY = "942d0d93c2949f26dbfc1deab36b7ab9608e919a795a0b99aa00f0990f4ca774"
 
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY is missing from environment variables")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
