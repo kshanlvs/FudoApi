@@ -20,7 +20,8 @@ router = APIRouter(prefix="/users", tags=["authentication"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Load environment variables
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = "942d0d93c2949f26dbfc1deab36b7ab9608e919a795a0b99aa00f0990f4ca774"
+
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is missing from environment variables")
 
