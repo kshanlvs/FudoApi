@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from router.user_api import router as user_router
 from router.login_api import router as login_router
 from schema import UserCreate
+import secrets
 
 app = FastAPI()
 
@@ -20,6 +21,14 @@ app.include_router(login_router)
 @app.get("/")
 def read_root():
     return {"message": "Hello, World!"}
+
+
+
+
+# Generate a 32-byte hex key
+secret_key = secrets.token_hex(32)
+print(secret_key)
+
 
 
 @app.post("/users/", response_model=dict)
