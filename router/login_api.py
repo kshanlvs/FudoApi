@@ -20,6 +20,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Load environment variables
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is missing from environment variables")
+
+print(f"SECRET_KEY loaded: {SECRET_KEY}")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
