@@ -10,9 +10,13 @@ from sqlalchemy.orm import Session
 from router.user_api import router as user_router
 from router.login_api import router as login_router
 from schema import UserCreate
-import secrets
+from dotenv import load_dotenv
+import os
 
 app = FastAPI()
+
+
+load_dotenv()
 
 
 app.include_router(user_router)
@@ -25,11 +29,12 @@ def read_root():
 
 
 
-# Generate a 32-byte hex key
-secret_key = secrets.token_hex(32)
-print(secret_key)
 
+# Load environment variables from .env file
+SECRET_KEY = os.getenv("SECRET_KEY")
 
+print(SECRET_KEY)
+print('secret key')
 
 @app.post("/users/", response_model=dict)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
