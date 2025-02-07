@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from router.user_api import router as user_router
 from router.login_api import router as login_router
+from admin.router.add_product import router  as add_product
 from schema import UserCreate
 from dotenv import load_dotenv
 import os
@@ -20,6 +21,7 @@ app = FastAPI()
 load_dotenv()
 
 
+app.include_router(add_product)
 app.include_router(user_router)
 app.include_router(profile_router)
 
