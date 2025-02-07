@@ -35,8 +35,7 @@ def read_root():
 # Load environment variables from .env file
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-print(SECRET_KEY)
-print('secret key')
+
 
 @app.post("/users/", response_model=dict)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
