@@ -8,7 +8,7 @@ from database import get_db
 router = APIRouter(prefix="/categories", tags=["Category"])
 
 @router.post("/")
-def create_product(category: CategoryCreate, db: Session = Depends(get_db)):
+def create_category(category: CategoryCreate, db: Session = Depends(get_db)):
     new_category = Category(
         name=category.name,
         description=category.description,
@@ -17,4 +17,4 @@ def create_product(category: CategoryCreate, db: Session = Depends(get_db)):
     db.add(new_category)
     db.commit()
     db.refresh(new_category)
-    return {"message": "Product added successfully", "product": new_category}
+    return {"message": "Category Added Successfully", "category": new_category}

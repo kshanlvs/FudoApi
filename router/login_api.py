@@ -5,40 +5,33 @@ from database import get_db
 from models import User
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from schemas.login import UserLogin
+from datetime import datetime, timedelta
 import logging
 import os
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-
+from schemas.login import UserLogin
 
 load_dotenv()
 
-
-
 SECRET_KEY = os.getenv('SECRET_KEY')
-
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is missing from environment variables")
+
+# Hardcoded admin password and user ID
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')  # Store this in .env
+ADMIN_USER_ID = 1  # This is the ID of the admin in your database (adjust accordingly)
 
 router = APIRouter(prefix="/users", tags=["authentication"])
 
 # Password hashing setup
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Load environment variables
-
-
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Initialize logger
 logger = logging.getLogger(__name__)
-
-# Helper function to verify passwords
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
 
 # Helper function to create JWT token
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -47,10 +40,20 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+# Helper function to verify passwords
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
 @router.post("/login", response_model=dict)
 def login(user: UserLogin, db: Session = Depends(get_db)):
     try:
-        # Query user by email or phone
+        # Admin login check with hardcoded password
+        if user.password == ADMIN_PASSWORD:
+            logger.info(f"Admin login successful.")
+            access_token = create_access_token(data={"sub": str(ADMIN_USER_ID)})
+            return {"access_token": access_token, "token_type": "bearer"}
+
+        # Regular user login
         logger.info(f"Attempting to log in user with identifier: {user.identifier}")
         existing_user = db.query(User).filter(
             (User.email == user.identifier) | (User.phone == user.identifier)
@@ -60,12 +63,12 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
             logger.error(f"User with identifier {user.identifier} not found.")
             raise HTTPException(status_code=400, detail="User not found.")
 
-        # Verify password
+        # Verify user password
         if not verify_password(user.password, existing_user.password):
             logger.error(f"Invalid credentials for user with identifier: {user.identifier}")
             raise HTTPException(status_code=401, detail="Invalid credentials.")
 
-        # Create JWT token
+        # Generate JWT token for the user
         access_token = create_access_token(data={"sub": str(existing_user.id)})
         logger.info(f"Login successful for user {user.identifier}, token generated.")
 
