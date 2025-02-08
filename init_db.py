@@ -1,6 +1,6 @@
 from database import Base, engine
 from models import User
-from models import Product
+from admin_model import Product,Category
 # Create tables
 print("Creating database tables...")
 Base.metadata.create_all(bind=engine)
