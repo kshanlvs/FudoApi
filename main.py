@@ -1,5 +1,6 @@
 
 from fastapi import  HTTPException, Depends
+from starlette.middleware.cors import CORSMiddleware
 
 from database import get_db
 from models import User
@@ -19,6 +20,14 @@ app = FastAPI()
 
 
 load_dotenv()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change this to specific domains in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 app.include_router(add_product)

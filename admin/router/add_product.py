@@ -12,6 +12,8 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     new_product = Product(
         name=product.name,
         description=product.description,
+        price=product.price,  # Include price
+        image_url=product.image_url,  # Include image URL
     )
     db.add(new_product)
     db.commit()
