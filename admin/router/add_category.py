@@ -32,7 +32,7 @@ def create_category(
     db.refresh(new_category)
     return {"message": "Category Added Successfully", "category": new_category}
 
-@router.get("/", response_model=List[CategoryResponse])
+@router.get("/", response_model=dict)
 def get_categories(db: Session = Depends(get_db)):
     categories = db.query(Category).all()
     if not categories:
