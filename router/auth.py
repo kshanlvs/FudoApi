@@ -26,3 +26,20 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+ADMIN_IDS = {"121511"}
+
+def check_admin(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")  # Extract user ID from the token
+
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        if user_id not in ADMIN_IDS:
+            raise HTTPException(status_code=403, detail="Access forbidden: Admins only")
+
+        return user_id in ADMIN_IDS
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")

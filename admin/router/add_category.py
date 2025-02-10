@@ -7,7 +7,7 @@ from starlette import status
 from admin.schemas.category_schema import CategoryCreate, CategoryResponse
 from admin_model import Category
 from database import get_db
-from router.auth import get_current_user
+from router.auth import check_admin  # Import admin authentication
 
 router = APIRouter(prefix="/categories", tags=["Category"])
 
@@ -15,13 +15,14 @@ router = APIRouter(prefix="/categories", tags=["Category"])
 def create_category(
     category: CategoryCreate,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)  # Ensure JWT authentication
+    is_admin: bool = Depends(check_admin)  # Ensure admin authentication
 ):
-    if not current_user:
+    if not is_admin:  # If the user is not an admin, deny access
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to create categories"
         )
+
     new_category = Category(
         name=category.name,
         description=category.description,
@@ -31,7 +32,6 @@ def create_category(
     db.commit()
     db.refresh(new_category)
     return {"message": "Category Added Successfully", "category": new_category}
-
 
 @router.get("/", response_model=dict)  # Define the response model as dict
 def get_categories(db: Session = Depends(get_db)):

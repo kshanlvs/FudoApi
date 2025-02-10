@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from admin.schemas.add_product_schema import ProductCreate
 from admin_model import Product, Category  # Ensure Category model is imported
 from database import get_db
-from router.auth import get_current_user  # Import JWT auth dependency
+from router.auth import check_admin  # Import JWT auth dependency
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -12,16 +12,9 @@ router = APIRouter(prefix="/products", tags=["Products"])
 def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)  # Ensure authentication
+    is_admin: bool = Depends(check_admin)  # Check if user is admin
 ):
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
-        )
-
-    # Optional: Restrict access to admins only
-    if current_user.get("role") != "admin":
+    if not is_admin:  # If check_admin returns False, deny access
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to create products"

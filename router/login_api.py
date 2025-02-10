@@ -19,7 +19,7 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY is missing from environment variables")
 
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
-ADMIN_USER_ID = 1
+ADMIN_USER_ID = 121511
 
 router = APIRouter(prefix="/users", tags=["authentication"])
 
