@@ -18,9 +18,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is missing from environment variables")
 
-# Hardcoded admin password and user ID
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')  # Store this in .env
-ADMIN_USER_ID = 1  # This is the ID of the admin in your database (adjust accordingly)
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+ADMIN_USER_ID = 1
 
 router = APIRouter(prefix="/users", tags=["authentication"])
 
