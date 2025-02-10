@@ -43,6 +43,6 @@ def get_categories(db: Session = Depends(get_db)):
         )
 
     # Use CategoryResponse to serialize the list of categories
-    categories_response = [CategoryResponse.Config.from_attributes(category) for category in categories]
+    categories_response = [CategoryResponse.model_validate(category) for category in categories]
 
     return {"categories": categories_response}
