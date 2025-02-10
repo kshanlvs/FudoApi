@@ -32,7 +32,8 @@ def create_category(
     db.refresh(new_category)
     return {"message": "Category Added Successfully", "category": new_category}
 
-@router.get("/", response_model=dict)
+
+@router.get("/", response_model=dict)  # Define the response model as dict
 def get_categories(db: Session = Depends(get_db)):
     categories = db.query(Category).all()
     if not categories:
@@ -40,6 +41,8 @@ def get_categories(db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No categories found"
         )
-    categories_response = [CategoryResponse.from_attributes(category) for category in categories]
+
+    # Use CategoryResponse to serialize the list of categories
+    categories_response = [CategoryResponse.Config.from_attributes(category) for category in categories]
 
     return {"categories": categories_response}
