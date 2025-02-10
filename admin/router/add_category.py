@@ -1,8 +1,10 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-from admin.schemas.category_schema import CategoryCreate
+from admin.schemas.category_schema import CategoryCreate, CategoryResponse
 from admin_model import Category
 from database import get_db
 from router.auth import get_current_user
@@ -29,3 +31,13 @@ def create_category(
     db.commit()
     db.refresh(new_category)
     return {"message": "Category Added Successfully", "category": new_category}
+
+@router.get("/", response_model=List[CategoryResponse])
+def get_categories(db: Session = Depends(get_db)):
+    categories = db.query(Category).all()
+    if not categories:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No categories found"
+        )
+    return categories
