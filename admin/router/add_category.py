@@ -40,4 +40,6 @@ def get_categories(db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No categories found"
         )
-    return {"categories": categories}
+    categories_response = [CategoryResponse.from_attributes(category) for category in categories]
+
+    return {"categories": categories_response}
