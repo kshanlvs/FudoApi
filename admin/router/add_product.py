@@ -66,10 +66,10 @@ def fetch_all_products(
     return {"products": products_response}
 
 
-@router.get("/{product_id}",response_model=dict)
+@router.get("/{product_id}",response_model=ProductsResponse)
 def fetch_product(
-        product_id: int,
-        db: Session = Depends(get_db),
+    product_id: int,
+    db: Session = Depends(get_db),
 ):
     # Fetch the product by ID
     product = db.query(Product).filter(Product.id == product_id).first()
@@ -81,5 +81,5 @@ def fetch_product(
             detail="Product not found"
         )
 
-    # Return the product data
-    return {"product": product}
+    # Return the product using the Pydantic response model
+    return product
