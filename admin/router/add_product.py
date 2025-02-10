@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from admin.schemas.add_product_schema import ProductCreate
+from admin.schemas.add_product_schema import ProductCreate, ProductsResponse
 from admin_model import Product, Category  # Ensure Category model is imported
 from database import get_db
 from router.auth import check_admin  # Import JWT auth dependency
@@ -39,3 +39,47 @@ def create_product(
     db.refresh(new_product)
 
     return {"message": "Product added successfully", "product": new_product}
+
+
+
+
+
+@router.get("/",response_model=dict)
+def fetch_all_products(
+    db: Session = Depends(get_db),
+):
+    # Fetch all products from the database
+    products = db.query(Product).all()
+
+    # If no products are found, raise a 404 error
+    if not products:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No products found"
+        )
+
+    # Prepare the products data in a dictionary format
+    products_response = [ProductsResponse.model_validate(product) for product in products]
+
+
+    # Return the list of all products in the dictionary format
+    return {"products": products_response}
+
+
+@router.get("/{product_id}",response_model=dict)
+def fetch_product(
+        product_id: int,
+        db: Session = Depends(get_db),
+):
+    # Fetch the product by ID
+    product = db.query(Product).filter(Product.id == product_id).first()
+
+    # If the product doesn't exist, raise a 404 error
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found"
+        )
+
+    # Return the product data
+    return {"product": product}
