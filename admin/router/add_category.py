@@ -40,4 +40,4 @@ def get_categories(db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No categories found"
         )
-    return categories
+    return {"categories": categories}
