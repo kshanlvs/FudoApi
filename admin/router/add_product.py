@@ -1,12 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+import firebase_admin
+import os
 
+from firebase_admin import credentials, storage,initialize_app
 from admin.schemas.add_product_schema import ProductCreate, ProductsResponse
 from admin_model import Product, Category  # Ensure Category model is imported
 from database import get_db
 from router.auth import check_admin  # Import JWT auth dependency
 
+
+firebase_credentials = os.getenv('FIREBASE_CREDENTIALS_PATH')
+cred = credentials.Certificate(firebase_credentials)
+initialize_app(cred)
+
 router = APIRouter(prefix="/products", tags=["Products"])
+
+
 
 @router.post("/")
 def create_product(
@@ -25,12 +35,29 @@ def create_product(
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
 
+    # Upload image to Firebase Storage
+    if product.image_file:  # Assuming the image file is passed as part of the request
+        try:
+            # Upload the file to Firebase Storage
+            bucket = storage.bucket()
+            blob = bucket.blob(f"product_images/{product.image_file.filename}")
+            blob.upload_from_file(product.image_file.file)
+
+            # Make the image publicly accessible
+            blob.make_public()
+            image_url = blob.public_url
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
+    else:
+        image_url = None  # If no image file is provided, set the image_url to None
+
     # Create the new product
     new_product = Product(
         name=product.name,
         description=product.description,
         price=product.price,
-        image_url=product.image_url,
+        image_url=image_url,  # Store the image URL in the database
         category_id=product.category_id,  # Associate with category
     )
 
@@ -39,6 +66,7 @@ def create_product(
     db.refresh(new_product)
 
     return {"message": "Product added successfully", "product": new_product}
+
 
 
 

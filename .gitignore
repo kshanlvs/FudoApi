@@ -20,3 +20,5 @@ __pycache__/
 # Ignore IDE settings
 .idea/
 .vscode/
+# Firebase credentials
+firebase_credentials.json
