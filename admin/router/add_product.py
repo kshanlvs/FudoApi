@@ -9,15 +9,13 @@ from database import get_db
 from router.auth import check_admin  # Import JWT auth dependency
 
 # Load Firebase credentials from environment variables
-firebase_credentials = os.getenv("FIREBASE_CREDENTIALS_PATH")
-
-if not firebase_credentials or not os.path.exists(firebase_credentials):
+firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH', './firebase_credentials.json')
+if not os.path.exists(firebase_credentials_path):
     raise RuntimeError("Firebase credentials file is missing or path is incorrect.")
 
 # Initialize Firebase (Ensure it's only initialized once)
-if not firebase_admin._apps:
-    cred = credentials.Certificate(firebase_credentials)
-    firebase_admin.initialize_app(cred, {"storageBucket": "sample-cab22.appspot.com"})  # Correct bucket domain
+cred = credentials.Certificate(firebase_credentials_path)
+firebase_admin.initialize_app(cred, {"storageBucket": "sampe-cab22.appspot.com"})# Correct bucket domain
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
