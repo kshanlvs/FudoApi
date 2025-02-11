@@ -62,7 +62,7 @@ async def create_product(
     image_url = None
     if image_file:
         try:
-            bucket = storage.bucket(name='sampe-cab22.appspot.com')
+            bucket = storage.bucket(name='sampe-cab22')
             blob = bucket.blob(f"product_images/{image_file.filename}")
             blob.upload_from_file(image_file.file, content_type=image_file.content_type)
             blob.make_public()
