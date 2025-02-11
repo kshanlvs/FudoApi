@@ -9,7 +9,9 @@ from database import get_db
 from router.auth import check_admin  # Import JWT auth dependency
 
 # Load Firebase credentials from environment variables
-firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH', './firebase_credentials.json')
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
+firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH', os.path.join(BASE_DIR, 'firebase_credentials.json'))
 if not os.path.exists(firebase_credentials_path):
     raise RuntimeError("Firebase credentials file is missing or path is incorrect.")
 

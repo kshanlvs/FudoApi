@@ -21,4 +21,6 @@ __pycache__/
 .idea/
 .vscode/
 # Firebase credentials
-./firebase_credentials.json
+firebase_credentials.json
+
+
