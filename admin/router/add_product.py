@@ -1,64 +1,67 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form, UploadFile, File
 from sqlalchemy.orm import Session
-import firebase_admin
 import os
-
-from firebase_admin import credentials, storage,initialize_app
+import firebase_admin
+from firebase_admin import credentials, storage
 from admin.schemas.add_product_schema import ProductCreate, ProductsResponse
 from admin_model import Product, Category  # Ensure Category model is imported
 from database import get_db
 from router.auth import check_admin  # Import JWT auth dependency
 
+# Load Firebase credentials from environment variables
+firebase_credentials = os.getenv("FIREBASE_CREDENTIALS_PATH")
 
-firebase_credentials = os.getenv('FIREBASE_CREDENTIALS_PATH')
-cred = credentials.Certificate(firebase_credentials)
-initialize_app(cred)
+if not firebase_credentials or not os.path.exists(firebase_credentials):
+    raise RuntimeError("Firebase credentials file is missing or path is incorrect.")
+
+# Initialize Firebase (Ensure it's only initialized once)
+if not firebase_admin._apps:
+    cred = credentials.Certificate(firebase_credentials)
+    firebase_admin.initialize_app(cred, {"storageBucket": "sample-cab22.appspot.com"})  # Correct bucket domain
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
-
 @router.post("/")
-def create_product(
-    product: ProductCreate,
+async def create_product(
+    name: str = Form(...),
+    description: str = Form(...),
+    price: float = Form(...),
+    category_id: int = Form(...),
+    image_file: UploadFile = File(None),  # Image is optional
     db: Session = Depends(get_db),
-    is_admin: bool = Depends(check_admin)  # Check if user is admin
+    is_admin: bool = Depends(check_admin)
 ):
-    if not is_admin:  # If check_admin returns False, deny access
+    if not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to create products"
         )
 
-    # Check if the category exists
-    category = db.query(Category).filter(Category.id == product.category_id).first()
+    # Check if category exists
+    category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
 
     # Upload image to Firebase Storage
-    if product.image_file:  # Assuming the image file is passed as part of the request
+    image_url = None
+    if image_file:
         try:
-            # Upload the file to Firebase Storage
             bucket = storage.bucket()
-            blob = bucket.blob(f"product_images/{product.image_file.filename}")
-            blob.upload_from_file(product.image_file.file)
-
-            # Make the image publicly accessible
+            blob = bucket.blob(f"product_images/{image_file.filename}")
+            blob.upload_from_file(image_file.file, content_type=image_file.content_type)
             blob.make_public()
             image_url = blob.public_url
-
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
-    else:
-        image_url = None  # If no image file is provided, set the image_url to None
 
-    # Create the new product
+    # Create new product
     new_product = Product(
-        name=product.name,
-        description=product.description,
-        price=product.price,
-        image_url=image_url,  # Store the image URL in the database
-        category_id=product.category_id,  # Associate with category
+        name=name,
+        description=description,
+        price=price,
+        image_url=image_url,
+        category_id=category_id
     )
 
     db.add(new_product)
@@ -68,46 +71,29 @@ def create_product(
     return {"message": "Product added successfully", "product": new_product}
 
 
-
-
-
-
-@router.get("/",response_model=dict)
-def fetch_all_products(
-    db: Session = Depends(get_db),
-):
-    # Fetch all products from the database
+@router.get("/")
+def fetch_all_products(db: Session = Depends(get_db)):
     products = db.query(Product).all()
 
-    # If no products are found, raise a 404 error
     if not products:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No products found"
         )
 
-    # Prepare the products data in a dictionary format
     products_response = [ProductsResponse.model_validate(product) for product in products]
 
-
-    # Return the list of all products in the dictionary format
     return {"products": products_response}
 
 
-@router.get("/{product_id}",response_model=ProductsResponse)
-def fetch_product(
-    product_id: int,
-    db: Session = Depends(get_db),
-):
-    # Fetch the product by ID
+@router.get("/{product_id}", response_model=ProductsResponse)
+def fetch_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
 
-    # If the product doesn't exist, raise a 404 error
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Product not found"
         )
 
-    # Return the product using the Pydantic response model
     return product
