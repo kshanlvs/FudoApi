@@ -32,10 +32,6 @@ try:
     cred = credentials.Certificate(firebase_credentials)
     firebase_admin.initialize_app(cred)  # Correct bucket domain
 
-    # Check if the initialization is successful
-    bucket = storage.bucket(name='sampe-cab22.firebasestorage.app')
-
-
 except Exception as e:
     print(f"❌ Firebase initialization failed: {e}")
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -66,7 +62,7 @@ async def create_product(
     image_url = None
     if image_file:
         try:
-            bucket = storage.bucket()
+            bucket = storage.bucket(name='sampe-cab22.firebasestorage.app')
             blob = bucket.blob(f"product_images/{image_file.filename}")
             blob.upload_from_file(image_file.file, content_type=image_file.content_type)
             blob.make_public()
