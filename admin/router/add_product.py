@@ -10,15 +10,39 @@ from router.auth import check_admin  # Import JWT auth dependency
 
 # Load Firebase credentials from environment variables
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
-firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH', os.path.join(BASE_DIR, 'firebase_credentials.json'))
+
+firebase_credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH', 'firebase_credentials.json')
+
 if not os.path.exists(firebase_credentials_path):
     raise RuntimeError("Firebase credentials file is missing or path is incorrect.")
 
-# Initialize Firebase (Ensure it's only initialized once)
-cred = credentials.Certificate(firebase_credentials_path)
-firebase_admin.initialize_app(cred, {"storageBucket": "sampe-cab22.appspot.com"})# Correct bucket domain
 
+# Initialize Firebase (Ensure it's only initialized once)
+
+firebase_credentials = {
+    "type": "service_account",
+    "project_id": os.getenv('FIREBASE_PROJECT_ID'),
+    "private_key_id": os.getenv('FIREBASE_PRIVATE_KEY_ID'),
+    "private_key": os.getenv('FIREBASE_PRIVATE_KEY').replace("\\n", "\n"),
+    "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
+    "client_id": os.getenv('FIREBASE_CLIENT_ID'),
+    "auth_uri": os.getenv('FIREBASE_AUTH_URI'),
+    "token_uri": os.getenv('FIREBASE_TOKEN_URI'),
+    "auth_provider_x509_cert_url": os.getenv('FIREBASE_AUTH_PROVIDER_X509_CERT_URL'),
+    "client_x509_cert_url": os.getenv('FIREBASE_CLIENT_X509_CERT_URL'),
+}
+
+try:
+    # Initialize Firebase Admin SDK
+    cred = credentials.Certificate(firebase_credentials)
+    firebase_admin.initialize_app(cred)  # Correct bucket domain
+
+    # Check if the initialization is successful
+    bucket = storage.bucket(name='sampe-cab22.firebasestorage.app')
+
+
+except Exception as e:
+    print(f"❌ Firebase initialization failed: {e}")
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
