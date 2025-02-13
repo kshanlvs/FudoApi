@@ -41,7 +41,7 @@ def compress_image(image_file: UploadFile) -> BytesIO:
     try:
         image = Image.open(image_file.file)
         image = image.convert("RGB")
-        image = image.resize((800, 800), Image.ANTIALIAS)  # Resize to 800x800 (you can change this)
+        image = image.resize((800, 800))  # Resize to 800x800 (you can change this)
 
         img_byte_arr = BytesIO()
         image.save(img_byte_arr, format="JPEG", quality=75)  # Save as JPEG with 75% quality
