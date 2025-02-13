@@ -7,13 +7,12 @@ from admin.schemas.add_product_schema import ProductCreate, ProductsResponse
 from admin_model import Product, Category  # Ensure Category model is imported
 from database import get_db
 from router.auth import check_admin  # Import JWT auth dependency
+from PIL import Image
+from io import BytesIO
 
 # Load Firebase credentials from environment variables
 
-
-
 # Initialize Firebase (Ensure it's only initialized once)
-
 firebase_credentials = {
     "type": "service_account",
     "project_id": os.getenv('FIREBASE_PROJECT_ID'),
@@ -31,21 +30,36 @@ try:
     # Initialize Firebase Admin SDK
     cred = credentials.Certificate(firebase_credentials)
     firebase_admin.initialize_app(cred)  # Correct bucket domain
-
 except Exception as e:
     print(f"❌ Firebase initialization failed: {e}")
+
 router = APIRouter(prefix="/products", tags=["Products"])
+
+
+def compress_image(image_file: UploadFile) -> BytesIO:
+    """Compress image to reduce size for better performance"""
+    try:
+        image = Image.open(image_file.file)
+        image = image.convert("RGB")
+        image = image.resize((800, 800), Image.ANTIALIAS)  # Resize to 800x800 (you can change this)
+
+        img_byte_arr = BytesIO()
+        image.save(img_byte_arr, format="JPEG", quality=75)  # Save as JPEG with 75% quality
+        img_byte_arr.seek(0)  # Rewind the byte array to the beginning
+        return img_byte_arr
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Error compressing image: {str(error)}")
 
 
 @router.post("/")
 async def create_product(
-    name: str = Form(...),
-    description: str = Form(...),
-    price: float = Form(...),
-    category_id: int = Form(...),
-    image_file: UploadFile = File(None),  # Image is optional
-    db: Session = Depends(get_db),
-    is_admin: bool = Depends(check_admin)
+        name: str = Form(...),
+        description: str = Form(...),
+        price: float = Form(...),
+        category_id: int = Form(...),
+        image_file: UploadFile = File(None),  # Image is optional
+        db: Session = Depends(get_db),
+        is_admin: bool = Depends(check_admin)
 ):
     if not is_admin:
         raise HTTPException(
@@ -62,13 +76,14 @@ async def create_product(
     image_url = None
     if image_file:
         try:
+            compressed_image = compress_image(image_file)
             bucket = storage.bucket(name='sampe-cab22')
             blob = bucket.blob(f"product_images/{image_file.filename}")
-            blob.upload_from_file(image_file.file, content_type=image_file.content_type)
+            blob.upload_from_file(compressed_image, content_type="image/jpeg")
             blob.make_public()
             image_url = blob.public_url
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
+        except Exception as error:
+            raise HTTPException(status_code=500, detail=f"Error uploading image: {str(error)}")
 
     # Create new product
     new_product = Product(
