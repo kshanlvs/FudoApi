@@ -36,19 +36,32 @@ except Exception as e:
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
+from PIL import Image
+from io import BytesIO
+from fastapi import UploadFile, HTTPException
+
 def compress_image(image_file: UploadFile) -> BytesIO:
-    """Compress image to reduce size for better performance"""
+    """Compress image while maintaining a 4:3 aspect ratio"""
     try:
         image = Image.open(image_file.file)
         image = image.convert("RGB")
-        image = image.resize((800, 800))  # Resize to 800x800 (you can change this)
 
+        # Target width & height maintaining 4:3 aspect ratio
+        target_width = 800
+        target_height = int((4 / 3) * target_width)  # Ensures correct ratio (800x600)
+
+        # Resize while maintaining aspect ratio
+        image.thumbnail((target_width, target_height))
+
+        # Save compressed image
         img_byte_arr = BytesIO()
-        image.save(img_byte_arr, format="JPEG", quality=75)  # Save as JPEG with 75% quality
-        img_byte_arr.seek(0)  # Rewind the byte array to the beginning
+        image.save(img_byte_arr, format="JPEG", quality=75)  # 75% quality for optimization
+        img_byte_arr.seek(0)  # Reset stream position
+
         return img_byte_arr
     except Exception as error:
         raise HTTPException(status_code=500, detail=f"Error compressing image: {str(error)}")
+
 
 
 @router.post("/")
