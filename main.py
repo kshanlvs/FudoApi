@@ -12,6 +12,7 @@ from router.user_api import router as user_router
 from router.login_api import router as login_router
 from admin.router.add_product import router  as add_product
 from admin.router.add_category import  router as add_category
+from router.cart_api import  router as cart
 
 from schema import UserCreate
 from dotenv import load_dotenv
@@ -36,6 +37,7 @@ app.include_router(add_product)
 app.include_router(user_router)
 app.include_router(profile_router)
 app.include_router(add_category)
+app.include_router(cart)
 
 app.include_router(login_router)
 @app.get("/")
