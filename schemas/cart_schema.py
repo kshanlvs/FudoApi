@@ -8,12 +8,14 @@ class CartItemCreate(BaseModel):
     class Config:
         orm_mode = True
 
+
 class CartItemResponse(BaseModel):
-    product_id: int  # Product ID of the item in the cart
-    name: str  # Product name
-    quantity: int  # Quantity of the product in the cart
-    price: float  # Price per unit of the product
-    total: float  # Total price (quantity * price)
+    product_id: int
+    name: str
+    quantity: int
+    price: float
+    total: float
+    image_url: str  # Add image field
 
     class Config:
-        orm_mode = True
+        from_attributes = True

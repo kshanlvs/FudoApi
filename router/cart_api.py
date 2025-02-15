@@ -54,6 +54,43 @@ async def add_to_cart(
         name=product.name,
         quantity=new_cart_item.quantity,
         price=product.price,
-        total=new_cart_item.quantity * product.price
+        total=new_cart_item.quantity * product.price,
+        image_url = product.image_url
     )
+
+
+@router.get("/", response_model=dict)
+async def get_cart_items(
+    db: Session = Depends(get_db),
+    current_user: int = Depends(get_current_user)
+):
+    cart_items = (
+        db.query(Cart)
+        .join(Product, Cart.product_id == Product.id)
+        .filter(Cart.user_id == current_user.id)
+        .all()
+    )
+
+    if not cart_items:
+        raise HTTPException(status_code=404, detail="Cart is empty")
+
+    cart_response = {
+        "status": "success",
+        "message": "Cart fetched successfully",
+        "cart_items": [
+            {
+                "product_id": item.product_id,
+                "name": item.product.name,
+                "quantity": item.quantity,
+                "price": item.price,
+                "total": item.quantity * item.price,
+                "image_url": item.product.image_url if item.product.image_url else None
+            }
+            for item in cart_items
+        ]
+    }
+
+    return cart_response
+
+
 
