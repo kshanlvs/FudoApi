@@ -14,6 +14,7 @@ class Product(Base):
 
     # Create a relationship to the Category model
     category = relationship("Category", back_populates="products")
+    cart = relationship("Cart", back_populates="product", cascade="all, delete-orphan")
 
 
 class Category(Base):

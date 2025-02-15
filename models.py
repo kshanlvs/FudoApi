@@ -12,6 +12,8 @@ class User(Base):
     phone = Column(String, unique=True, index=True)  # Added phone field
     password = Column(String, index=True)
 
+    cart = relationship("Cart", back_populates="user", cascade="all, delete-orphan")
+
 
 
 class Cart(Base):
