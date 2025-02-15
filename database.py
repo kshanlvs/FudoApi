@@ -23,4 +23,4 @@ def get_db():
         yield db
     except Exception as e:
         print(f"🔥 Error getting DB session: {e}")
-        raise HTTPException(status_code=500, detail="Database session failed")
+        raise HTTPException(status_code=500, detail=f"Database session failed {e}")
