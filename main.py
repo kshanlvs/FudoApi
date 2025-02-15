@@ -9,6 +9,7 @@ from models import User
 from fastapi import  FastAPI
 from sqlalchemy.orm import Session
 
+from router.auth import get_current_user
 from router.user_api import router as user_router
 from router.login_api import router as login_router
 from admin.router.add_product import router  as add_product
@@ -100,21 +101,4 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         print(f"🔥 Error: {e}")  # Debugging log
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
-@app.get("/users/{user_id}", response_model=dict)
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {"id": db_user.id, "name": db_user.name, "email": db_user.email}
 
-@app.get("/allUsers", response_model=dict)
-def get_all_user(db: Session = Depends(get_db)):
-    # Fetch all users from the database
-    db_users = db.query(User).all()
-
-    # Check if there are users in the database
-    if not db_users:
-        raise HTTPException(status_code=404, detail="No users found")
-
-    # Return users in dictionary format
-    return {"users":"kishan"}
