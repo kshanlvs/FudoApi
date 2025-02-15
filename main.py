@@ -58,37 +58,42 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
+
 @app.post("/users/", response_model=dict)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    # Check if email or phone already exists
-    existing_user = db.query(User).filter(
-        (User.email == user.email) | (User.phone == user.phone)
-    ).first()
+    try:
+        existing_user = db.query(User).filter(
+            (User.email == user.email) | (User.phone == user.phone)
+        ).first()
 
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email or phone number already registered")
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email or phone number already registered")
 
-    # Hash password before saving
-    hashed_password = hash_password(user.password)
+        # Hash password before saving
+        hashed_password = hash_password(user.password)
 
-    # Create new user
-    new_user = User(
-        name=user.name,
-        email=user.email,
-        phone=user.phone,
-        password=hashed_password
-    )
+        # Create new user
+        new_user = User(
+            name=user.name,
+            email=user.email,
+            phone=user.phone,
+            password=hashed_password
+        )
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-    return {
-        "id": new_user.id,
-        "name": new_user.name,
-        "email": new_user.email,
-        "phone": new_user.phone
-    }
+        return {
+            "id": new_user.id,
+            "name": new_user.name,
+            "email": new_user.email,
+            "phone": new_user.phone
+        }
+
+    except Exception as e:
+        print(f"🔥 Error: {e}")  # Debugging log
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 @app.get("/users/{user_id}", response_model=dict)
 def get_user(user_id: int, db: Session = Depends(get_db)):
