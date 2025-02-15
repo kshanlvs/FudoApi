@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -5,7 +6,6 @@ from sqlalchemy.orm import sessionmaker
 # DATABASE_URL = "postgresql://postgres:ciJYamMAqdFQUNyIwLysHqUCSrNiHzDJ@viaduct.proxy.rlwy.net:19536/railway" production
 DATABASE_URL = "postgresql://postgres:QbicKrEIqJfTGxnrAEKpWdeLIAWROUhz@junction.proxy.rlwy.net:37908/railway"
 
-# Create the database engine
 engine = create_engine(DATABASE_URL, echo=True)
 
 
@@ -17,8 +17,10 @@ Base = declarative_base()
 
 # Dependency to get the database session
 def get_db():
-    db = SessionLocal()
     try:
+        db = SessionLocal()
+        print("✅ Database session created!")
         yield db
-    finally:
-        db.close()
+    except Exception as e:
+        print(f"🔥 Error getting DB session: {e}")
+        raise HTTPException(status_code=500, detail="Database session failed")

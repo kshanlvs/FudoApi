@@ -24,6 +24,9 @@ app = FastAPI()
 
 
 load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,13 +53,15 @@ def read_root():
 
 
 # Load environment variables from .env file
-SECRET_KEY = os.getenv("SECRET_KEY")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
+@app.get("/test-db")
+def test_db(db: Session = Depends(get_db)):
+    return {"message": "DB connection is working"}
 
 
 @app.post("/users/", response_model=dict)
