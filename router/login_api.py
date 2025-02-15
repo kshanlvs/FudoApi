@@ -27,7 +27,7 @@ router = APIRouter(prefix="/users", tags=["authentication"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 # Initialize logger
 logger = logging.getLogger(__name__)
