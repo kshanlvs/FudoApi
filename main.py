@@ -1,5 +1,6 @@
 
 from fastapi import  HTTPException, Depends
+from passlib.context import CryptContext
 from starlette.middleware.cors import CORSMiddleware
 
 from database import get_db
@@ -51,18 +52,43 @@ def read_root():
 # Load environment variables from .env file
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
 @app.post("/users/", response_model=dict)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = User(name=user.name, email=user.email)
+    # Check if email or phone already exists
+    existing_user = db.query(User).filter(
+        (User.email == user.email) | (User.phone == user.phone)
+    ).first()
+
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email or phone number already registered")
+
+    # Hash password before saving
+    hashed_password = hash_password(user.password)
+
+    # Create new user
+    new_user = User(
+        name=user.name,
+        email=user.email,
+        phone=user.phone,
+        password=hashed_password
+    )
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"id": new_user.id, "name": new_user.name, "email": new_user.email}
+
+    return {
+        "id": new_user.id,
+        "name": new_user.name,
+        "email": new_user.email,
+        "phone": new_user.phone
+    }
 
 @app.get("/users/{user_id}", response_model=dict)
 def get_user(user_id: int, db: Session = Depends(get_db)):
