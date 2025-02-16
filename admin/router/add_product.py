@@ -7,7 +7,7 @@ from admin.schemas.add_product_schema import ProductCreate, ProductsResponse
 from admin_model import Product, Category  # Ensure Category model is imported
 from database import get_db
 from models import Cart
-from router.auth import check_admin  # Import JWT auth dependency
+from router.auth import check_admin, get_current_user  # Import JWT auth dependency
 from PIL import Image
 from io import BytesIO
 
@@ -115,18 +115,21 @@ async def create_product(
     return {"message": "Product added successfully", "product": new_product}
 
 
-@router.get("/")
-def fetch_all_products(
-    user_id: int,  # Accept user_id as a query parameter
-    db: Session = Depends(get_db)
+
+@router.get("/", response_model=dict)
+async def get_products(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)  # Extract user ID securely
 ):
-    # Fetch products with LEFT JOIN on cart table for the given user
+    """Fetch all products with cart quantity if present for the authenticated user."""
+
+    # Fetch products with LEFT JOIN to include cart quantity
     products = (
         db.query(
             Product,
-            Cart.quantity.label("cart_quantity")  # Get quantity if product exists in cart
+            Cart.quantity.label("cart_quantity")
         )
-        .outerjoin(Cart, (Product.id == Cart.product_id) & (Cart.user_id == user_id))
+        .outerjoin(Cart, (Product.id == Cart.product_id) & (Cart.user_id == current_user["id"]))
         .all()
     )
 
@@ -136,26 +139,30 @@ def fetch_all_products(
             detail="No products found"
         )
 
-    # Format the response
-    products_response = [
-        {
-            "id": product.id,
-            "name": product.name,
-            "price": product.price,
-            "image": product.image_url,
-            "description": product.description,
-            "category": {
-                "id": product.category_id,
-                "name": product.category.name
-            },
-            "cart": {
-                "quantity": cart_quantity if cart_quantity else 0  # If not in cart, quantity = 0
+    # Construct response
+    products_response = {
+        "status": "success",
+        "message": "Products fetched successfully",
+        "products": [
+            {
+                "id": product.id,
+                "name": product.name,
+                "price": product.price,
+                "image_url": product.image_url if product.image_url else None,
+                "description": product.description,
+                "category": {
+                    "id": product.category_id,
+                    "name": product.category.name
+                },
+                "cart": {
+                    "quantity": cart_quantity if cart_quantity else 0  # If not in cart, quantity = 0
+                }
             }
-        }
-        for product, cart_quantity in products
-    ]
+            for product, cart_quantity in products
+        ]
+    }
 
-    return {"products": products_response}
+    return products_response
 
 
 
