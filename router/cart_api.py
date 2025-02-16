@@ -1,3 +1,5 @@
+from itertools import product
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -18,8 +20,8 @@ async def add_to_cart(
     current_user: int = Depends(get_current_user)
 ):
     # Check if the product exists
-    product = db.query(Product).filter(Product.id == cart_item.product_id).first()
-    if not product:
+    product_from_db = db.query(Product).filter(Product.id == cart_item.product_id).first()
+    if not product_from_db:
         raise HTTPException(status_code=404, detail="Product not found")
 
     # Check if the product is already in the cart
@@ -31,10 +33,11 @@ async def add_to_cart(
         db.refresh(existing_cart_item)
         return CartItemResponse(
             product_id=existing_cart_item.product_id,
-            name=product.name,
+            name=product_from_db.name,
             quantity=existing_cart_item.quantity,
-            price=product.price,
-            total=existing_cart_item.quantity * product.price
+            price=product_from_db.price,
+            total=existing_cart_item.quantity * product_from_db.price,
+            image_url = product_from_db.image_url
         )
 
     # Add a new cart item if not already in the cart
@@ -42,7 +45,7 @@ async def add_to_cart(
         user_id=current_user.id,
         product_id=cart_item.product_id,
         quantity=cart_item.quantity,
-        price=product.price
+        price=product_from_db.price
     )
 
     db.add(new_cart_item)
@@ -51,11 +54,11 @@ async def add_to_cart(
 
     return CartItemResponse(
         product_id=new_cart_item.product_id,
-        name=product.name,
+        name=product_from_db.name,
         quantity=new_cart_item.quantity,
-        price=product.price,
-        total=new_cart_item.quantity * product.price,
-        image_url = product.image_url
+        price=product_from_db.price,
+        total=new_cart_item.quantity * product_from_db.price,
+        image_url = product_from_db.image_url
     )
 
 
