@@ -129,7 +129,7 @@ async def get_products(
             Product,
             Cart.quantity.label("cart_quantity")
         )
-        .outerjoin(Cart, (Product.id == Cart.product_id) & (Cart.user_id == current_user["id"]))
+        .outerjoin(Cart, (Product.id == Cart.product_id) & (Cart.user_id == current_user.id))
         .all()
     )
 
