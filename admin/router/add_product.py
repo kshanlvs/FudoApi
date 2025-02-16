@@ -142,7 +142,7 @@ def fetch_all_products(
             "id": product.id,
             "name": product.name,
             "price": product.price,
-            "image": product.image,
+            "image": product.image_url,
             "description": product.description,
             "category": {
                 "id": product.category_id,
