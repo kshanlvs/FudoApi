@@ -1,8 +1,6 @@
-from itertools import product
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from schemas.cart_schema import CartItemResponse, CartItemCreate
 from admin_model import Product
@@ -65,22 +63,24 @@ async def add_to_cart(
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.orm import joinedload
+
 @router.get("/", response_model=dict)
 async def get_cart_items(
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
     current_user: int = Depends(get_current_user)
 ):
-    result = await db.execute(
-        select(Cart)
-        .options(joinedload(Cart.product))
+    cart_items = (
+        db.query(Cart)
+        .options(joinedload(Cart.product))  # Eager load Product details
         .filter(Cart.user_id == current_user.id)
+        .all()
     )
-    cart_items = result.scalars().all()
 
     if not cart_items:
         raise HTTPException(status_code=404, detail="Cart is empty")
 
-    return {
+    cart_response = {
         "status": "success",
         "message": "Cart fetched successfully",
         "cart_items": [
@@ -95,6 +95,9 @@ async def get_cart_items(
             for item in cart_items
         ]
     }
+
+    return cart_response
+
 
 
 
