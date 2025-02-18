@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from schemas.cart_schema import CartItemResponse, CartItemCreate
+from schemas.cart_schema import CartItemResponse, CartItemCreate, CartItemUpdate
 from admin_model import Product
 from database import get_db
 from models import Cart
@@ -99,6 +99,55 @@ async def get_cart_items(
     return cart_response
 
 
+@router.put("/decrement", response_model=CartItemResponse)
+async def decrement_cart_item(
+    cart_item: CartItemUpdate,  # Should contain `product_id` and `quantity`
+    db: Session = Depends(get_db),
+    current_user: int = Depends(get_current_user)
+):
+    # Check if the product exists in the cart
+    existing_cart_item = db.query(Cart).filter(
+        Cart.user_id == current_user.id, Cart.product_id == cart_item.product_id
+    ).first()
 
+    if not existing_cart_item:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+
+    # Decrement quantity or remove if quantity is 1
+    if existing_cart_item.quantity > 1:
+        existing_cart_item.quantity -= 1
+        db.commit()
+        db.refresh(existing_cart_item)
+        return CartItemResponse(
+            product_id=existing_cart_item.product_id,
+            name=existing_cart_item.product.name,
+            quantity=existing_cart_item.quantity,
+            price=existing_cart_item.price,
+            total=existing_cart_item.quantity * existing_cart_item.price,
+            image_url=existing_cart_item.product.image_url
+        )
+    else:
+        db.delete(existing_cart_item)
+        db.commit()
+        return {"status": "success", "message": "Product removed from cart"}
+
+
+
+@router.delete("/remove/{product_id}")
+async def remove_cart_item(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: int = Depends(get_current_user)
+):
+    existing_cart_item = db.query(Cart).filter(
+        Cart.user_id == current_user.id, Cart.product_id == product_id
+    ).first()
+
+    if not existing_cart_item:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+
+    db.delete(existing_cart_item)
+    db.commit()
+    return {"status": "success", "message": "Product removed from cart"}
 
 
