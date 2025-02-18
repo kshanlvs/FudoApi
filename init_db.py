@@ -5,3 +5,5 @@ from admin_model import Product,Category
 print("Creating database tables...")
 Base.metadata.create_all(bind=engine)
 print("Database tables created.")
+
+
